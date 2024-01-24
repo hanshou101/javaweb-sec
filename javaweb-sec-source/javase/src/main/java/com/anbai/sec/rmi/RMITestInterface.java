@@ -13,6 +13,6 @@ public interface RMITestInterface extends Remote {
 	 *
 	 * @return 返回测试字符串
 	 */
-	String test() throws RemoteException;
+	Object test(Object o1) throws RemoteException;
 
 }

