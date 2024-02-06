@@ -17,11 +17,15 @@ public class TestHelloWorld implements Serializable {
 
 	private String password;
 
+	public TestHelloWorld() {
+	}
+
 	public String hello(String content) {
 		String str = "Hello:";
 		return str + content;
 	}
 
+	// @Performance
 	public static void main(String[] args) {
 		TestHelloWorld test = new TestHelloWorld();
 		String         str  = test.hello("Hello World~");

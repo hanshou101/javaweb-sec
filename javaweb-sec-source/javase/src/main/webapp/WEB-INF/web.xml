@@ -21,8 +21,10 @@
 
     <servlet-mapping>
         <servlet-name>javaweb</servlet-name>
+        <!--    localhost:8080/  -->
         <url-pattern>/</url-pattern>
     </servlet-mapping>
+
 
     <filter>
         <filter-name>characterEncodingFilter</filter-name>
@@ -39,6 +41,10 @@
 
     <filter-mapping>
         <filter-name>characterEncodingFilter</filter-name>
+        <!--    localhost:8080/  -->
+        <!--    localhost:8080/12312312  -->
+        <!--    localhost:8080/12312312/asdsadsad  -->
+        <!--    localhost:8080/12312312/asdsadsad/xzcxzcxz?asdasd=12332  -->
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
